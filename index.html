@@ -54,6 +54,7 @@
         <button data-panel="molecules-to-grams">Molecules → Grams</button>
         <button data-panel="grams-to-molecules">Grams → Molecules</button>
         <button data-panel="molar-mass">Molar Mass</button>
+        <button data-panel="molar-mass-plus">Molar Mass (with molecules and grams)</button>
       </div>
       <div class="panel">
         <section id="moles-to-grams" class="active">
@@ -116,6 +117,17 @@
           <div class="result" id="mm-result">Molar Mass: —</div>
           <div class="note">Enter formulas with element symbols and integer counts. Parentheses supported, e.g. Ca(OH)2</div>
         </section>
+        
+        <section id="molar-mass-plus">
+          <h2>Molar Mass Calculator (with grams and molecules)</h2>
+          <div class="field"><label>Grams</label><input id="mmp-grams" type="number" step = "any" placeholder="e.g. 28.0"></div>
+          <div class="field"><label>Molecules/Atoms</label><input id="mmp-atoms" type="number" step = "any" placeholder="e.g. 1.6e23"></div>
+          <button class="btn" id="mmp-calc">Calculate</button>
+          <div class="field"><label>Significant figs</label><input id="mmp-sig" type="number" min="1" max="12" value="3"></div>
+          <div class="result" id="mmp-result">Molar Mass: —</div>
+          <div class="note">Enter formulas with element symbols and integer counts. Parentheses supported, e.g. Ca(OH)2</div>
+        </section>
+        
       </div>
     </div>
     <footer>Avogadro's number used: 6.022×10^23 • Results formatted to three significant figures</footer>
@@ -317,7 +329,18 @@
       setResult('mm-result', toSigFigs(mm, sig) + ' g/mol');
     }catch(e){ setResult('mm-result', e.message, true); }
   });
+    
+  document.getElementById('mmp-calc').addEventListener('click', ()=>{
+    try{
+      const grm = document.getElementById('mmp-grams').value;
+      const atms = document.getElementById('mmp-atoms').value;
+      const sig = document.getElementById('mm-sig').value || 3;
+      const mm = (grm*6.02e23)/atms
+      setResult('mmp-result', toSigFigs(mm, sig) + ' g/mol');
+    }catch(e){ setResult('mm-result', e.message, true); }
+  });
   </script>
 </body>
 </html>
+
 

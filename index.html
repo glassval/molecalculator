@@ -51,10 +51,9 @@
         <button data-panel="grams-to-moles">Grams → Moles</button>
         <button data-panel="moles-to-molecules">Moles → Molecules</button>
         <button data-panel="molecules-to-moles">Molecules → Moles</button>
-        <button data-panel="molecules-to-grams">Molecules → Grams</button>
         <button data-panel="grams-to-molecules">Grams → Molecules</button>
         <button data-panel="molar-mass">Molar Mass</button>
-        <button data-panel="molar-mass-plus">Molar Mass (with molecules and grams)</button>
+        <button data-panel="molar-mass-gm">Molar Mass (Grams & Molecules)</button>
       </div>
       <div class="panel">
         <section id="moles-to-grams" class="active">
@@ -117,16 +116,15 @@
           <div class="result" id="mm-result">Molar Mass: —</div>
           <div class="note">Enter formulas with element symbols and integer counts. Parentheses supported, e.g. Ca(OH)2</div>
         </section>
-        
-        <section id="molar-mass-plus">
-          <h2>Molar Mass Calculator (with grams and molecules)</h2>
-          <div class="field"><label>Grams</label><input id="mmp-grams" type="number" step = "any" placeholder="e.g. 28.0"></div>
-          <div class="field"><label>Molecules/Atoms</label><input id="mmp-atoms" type="number" step = "any" placeholder="e.g. 1.6e23"></div>
-          <button class="btn" id="mmp-calc">Calculate</button>
-          <div class="field"><label>Significant figs</label><input id="mmp-sig" type="number" min="1" max="12" value="3"></div>
-          <div class="result" id="mmp-result">Molar Mass: —</div>
+
+        <section id="molar-mass-gm">
+          <h2>Molar Mass (Grams & Molecules)</h2>
+          <div class="field"><label>Grams</label><input id="mmgm-grams" type="number" step="any" placeholder="e.g. 18.0"></div>
+          <div class="field"><label>Molecules</label><input id="mmgm-molecules" type="number" step="any" placeholder="e.g. 6.022e23"></div>
+          <div class="field"><label>Significant figs</label><input id="mmgm-sig" type="number" min="1" max="12" value="3"></div>
+          <button class="btn" id="mmgm-calc">Calculate</button>
+          <div class="result" id="mmgm-result">Molar Mass: —</div>
         </section>
-        
       </div>
     </div>
     <footer>Avogadro's number used: 6.022×10^23 • Results formatted to three significant figures</footer>
@@ -136,17 +134,17 @@
   // Atomic masses (g/mol) — common elements; extend as needed
   const ATOMIC_MASSES = {
   H: 1.008, He: 4.0026, Li: 6.94, Be: 9.0122, B: 10.81, C: 12.011, N: 14.007, O: 15.999, F: 18.998, Ne: 20.180,
-  Na: 22.990, Mg: 24.305, Al: 26.982, Si: 28.085, P: 30.974, S: 32.06, Cl: 35.45, Ar: 39.948, K: 39.098, Ca: 40.078,
+  Na: 22.990, Mg: 24.305, Al: 26.982, Si: 28.085, P: 30.974, S: 32.06, Cl: 35.45, Ar: 39.95, K: 39.098, Ca: 40.078,
   Sc: 44.956, Ti: 47.867, V: 50.942, Cr: 51.996, Mn: 54.938, Fe: 55.845, Co: 58.933, Ni: 58.693, Cu: 63.546, Zn: 65.38,
-  Ga: 69.723, Ge: 72.630, As: 74.922, Se: 78.971, Br: 79.904, Kr: 83.798, Rb: 85.468, Sr: 87.62, Y: 88.906, Zr: 91.224,
-  Nb: 92.906, Mo: 95.95, Tc: 98, Ru: 101.07, Rh: 102.91, Pd: 106.42, Ag: 107.87, Cd: 112.41, In: 114.82, Sn: 118.71,
+  Ga: 69.723, Ge: 72.630, As: 74.922, Se: 78.971, Br: 79.904, Kr: 83.798, Rb: 85.468, Sr: 87.62, Y: 88.906, Zr: 91.222,
+  Nb: 92.906, Mo: 95.95, Tc: 97, Ru: 101.07, Rh: 102.91, Pd: 106.42, Ag: 107.87, Cd: 112.41, In: 114.82, Sn: 118.71,
   Sb: 121.76, Te: 127.60, I: 126.90, Xe: 131.29, Cs: 132.91, Ba: 137.33, La: 138.91, Ce: 140.12, Pr: 140.91, Nd: 144.24,
   Pm: 145, Sm: 150.36, Eu: 151.96, Gd: 157.25, Tb: 158.93, Dy: 162.50, Ho: 164.93, Er: 167.26, Tm: 168.93, Yb: 173.05,
   Lu: 174.97, Hf: 178.49, Ta: 180.95, W: 183.84, Re: 186.21, Os: 190.23, Ir: 192.22, Pt: 195.08, Au: 196.97, Hg: 200.59,
   Tl: 204.38, Pb: 207.2, Bi: 208.98, Po: 209, At: 210, Rn: 222, Fr: 223, Ra: 226, Ac: 227, Th: 232.04,
   Pa: 231.04, U: 238.03, Np: 237, Pu: 244, Am: 243, Cm: 247, Bk: 247, Cf: 251, Es: 252, Fm: 257,
-  Md: 258, No: 259, Lr: 262, Rf: 267, Db: 270, Sg: 271, Bh: 270, Hs: 277, Mt: 276, Ds: 281,
-  Rg: 280, Cn: 285, Nh: 284, Fl: 289, Mc: 288, Lv: 293, Ts: 294, Og: 294
+  Md: 258, No: 259, Lr: 266, Rf: 267, Db: 268, Sg: 269, Bh: 270, Hs: 269, Mt: 278, Ds: 281,
+  Rg: 282, Cn: 285, Nh: 286, Fl: 289, Mc: 290, Lv: 293, Ts: 294, Og: 294
 };
 
   const AVOGADRO = 6.022e23;
@@ -328,19 +326,41 @@
       setResult('mm-result', toSigFigs(mm, sig) + ' g/mol');
     }catch(e){ setResult('mm-result', e.message, true); }
   });
-    
-  document.getElementById('mmp-calc').addEventListener('click', ()=>{
+
+  document.getElementById('mmgm-calc').addEventListener('click', ()=>{
     try{
-      const grm = document.getElementById('mmp-grams').value;
-      const atms = document.getElementById('mmp-atoms').value;
-      const sig = document.getElementById('mm-sig').value || 3;
-      const mm = (grm*6.02e23)/atms
-      setResult('mmp-result', toSigFigs(mm, sig) + ' g/mol');
-    }catch(e){ setResult('mm-result', e.message, true); }
+      const grams = parseFloat(document.getElementById('mmgm-grams').value);
+      const molecules = parseFloat(document.getElementById('mmgm-molecules').value);
+      if (isNaN(grams)) throw new Error('Enter a valid mass in grams');
+      if (isNaN(molecules)) throw new Error('Enter a valid number of molecules');
+      const mm = (grams * AVOGADRO) / molecules;
+      const sig = document.getElementById('mmgm-sig').value || 3;
+      setResult('mmgm-result', toSigFigs(mm, sig) + ' g/mol');
+    }catch(e){ setResult('mmgm-result', e.message, true); }
+  });
+
+  // Enter key support for all inputs
+  const inputToCalc = {
+    'mtg-formula': 'mtg-calc', 'mtg-moles': 'mtg-calc', 'mtg-sig': 'mtg-calc',
+    'gtm-formula': 'gtm-calc', 'gtm-grams': 'gtm-calc', 'gtm-sig': 'gtm-calc',
+    'mtm-moles': 'mtm-calc', 'mtm-sig': 'mtm-calc',
+    'mtmoles-molecules': 'mtmoles-calc', 'mtmoles-sig': 'mtmoles-calc',
+    'mtg2-formula': 'mtg2-calc', 'mtg2-molecules': 'mtg2-calc', 'mtg2-sig': 'mtg2-calc',
+    'gtm2-formula': 'gtm2-calc', 'gtm2-grams': 'gtm2-calc', 'gtm2-sig': 'gtm2-calc',
+    'mm-formula': 'mm-calc', 'mm-sig': 'mm-calc',
+    'mmgm-grams': 'mmgm-calc', 'mmgm-molecules': 'mmgm-calc', 'mmgm-sig': 'mmgm-calc'
+  };
+  Object.keys(inputToCalc).forEach(inputId => {
+    const inputEl = document.getElementById(inputId);
+    if (inputEl) {
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          document.getElementById(inputToCalc[inputId]).click();
+        }
+      });
+    }
   });
   </script>
 </body>
 </html>
-
-
-

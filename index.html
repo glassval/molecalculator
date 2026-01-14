@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mole Calculator</title>
+  <style>
+    :root{
+      --accent:#2b7a78;
+      --accent-2:#6fb3b1;
+      --bg:#f6f8f9;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --radius:10px;
+      --gap:16px;
+    }
+    *{box-sizing:border-box}
+    body{font-family:Calibri, 'Segoe UI', Roboto, Arial, sans-serif;margin:0;background:linear-gradient(180deg,var(--bg),#eef6f6);color:#0f1724;-webkit-font-smoothing:antialiased}
+    .container{max-width:980px;margin:36px auto;background:var(--card);border-radius:var(--radius);box-shadow:0 10px 30px rgba(15,23,36,0.08);overflow:hidden;border:1px solid rgba(15,23,36,0.04)}
+    header{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;padding:26px 22px;text-align:center}
+    header h1{margin:0;font-size:30px;font-weight:700;letter-spacing:0.2px}
+    .app{display:flex;gap:var(--gap);padding:22px;flex-wrap:wrap;align-items:flex-start}
+    .menu{min-width:220px;border-right:1px solid rgba(15,23,36,0.04);padding-right:14px}
+    .menu button{display:block;width:100%;margin:8px 0;padding:12px 14px;font-size:15px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer;text-align:left;transition:all .18s ease}
+    .menu button:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(11,66,64,0.04)}
+    .menu button.active{background:linear-gradient(90deg, rgba(43,122,120,0.08), rgba(111,179,177,0.04)); color: #053236; border-color: rgba(11,66,64,0.06); font-weight:600}
+    .panel{flex:1;min-width:320px;padding-left:14px}
+    .panel section{display:none;padding:8px 6px}
+    .panel section.active{display:block}
+    .panel h2{margin:6px 0 14px 0;font-size:20px;color:#072f2e}
+    .field{display:flex;gap:12px;align-items:center;margin:10px 0}
+    .field input[type=text], .field input[type=number]{flex:1;padding:12px 14px;font-size:15px;border:1px solid rgba(15,23,36,0.08);border-radius:8px;background:#fbfdfe}
+    .field input[type=number]::-webkit-outer-spin-button, .field input[type=number]::-webkit-inner-spin-button{opacity:0.6}
+    .field label{width:150px;color:var(--muted);font-size:14px}
+    .btn{padding:10px 16px;border-radius:8px;border:0;background:var(--accent);color:#fff;font-size:15px;cursor:pointer;box-shadow:0 6px 18px rgba(43,122,120,0.12);transition:transform .12s ease}
+    .btn:active{transform:translateY(1px)}
+    .result{margin-top:12px;padding:14px;border-radius:8px;background:linear-gradient(180deg,#f7fffe,#eef9f8);border:1px solid rgba(11,66,64,0.06);color:#04433f;min-height:44px;font-weight:600;font-size:15px}
+    .note{color:var(--muted);font-size:13px;margin-top:8px}
+    footer{padding:12px 18px;text-align:center;font-size:13px;color:var(--muted);border-top:1px solid rgba(15,23,36,0.03)}
+    @media(max-width:820px){.app{flex-direction:column;padding:14px}.menu{min-width:100%;border-right:none;padding-right:0}.field{flex-direction:column;align-items:stretch}.field label{width:100%}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Mole Calculator</h1>
+    </header>
+    <div class="app">
+      <div class="menu" role="navigation">
+        <button data-panel="moles-to-grams" class="active">Moles → Grams</button>
+        <button data-panel="grams-to-moles">Grams → Moles</button>
+        <button data-panel="moles-to-molecules">Moles → Molecules</button>
+        <button data-panel="molecules-to-moles">Molecules → Moles</button>
+        <button data-panel="molecules-to-grams">Molecules → Grams</button>
+        <button data-panel="grams-to-molecules">Grams → Molecules</button>
+        <button data-panel="molar-mass">Molar Mass</button>
+      </div>
+      <div class="panel">
+        <section id="moles-to-grams" class="active">
+          <h2>Moles → Grams</h2>
+          <div class="field"><label>Compound/Element</label><input id="mtg-formula" type="text" placeholder="e.g. H2O or NaCl"></div>
+          <div class="field"><label>Moles</label><input id="mtg-moles" type="number" step="any" placeholder="e.g. 0.25"></div>
+          <div class="field"><label>Significant figs</label><input id="mtg-sig" type="number" min="1" max="12" value="3"></div>
+          <button class="btn" id="mtg-calc">Calculate</button>
+          <div class="result" id="mtg-result">Result: —</div>
+        </section>
+
+        <section id="grams-to-moles">
+          <h2>Grams → Moles</h2>
+          <div class="field"><label>Compound/Element</label><input id="gtm-formula" type="text" placeholder="e.g. CO2"></div>
+          <div class="field"><label>Grams</label><input id="gtm-grams" type="number" step="any" placeholder="e.g. 12.0"></div>
+          <div class="field"><label>Significant figs</label><input id="gtm-sig" type="number" min="1" max="12" value="3"></div>
+          <button class="btn" id="gtm-calc">Calculate</button>
+          <div class="result" id="gtm-result">Result: —</div>
+        </section>
+
+        <section id="moles-to-molecules">
+          <h2>Moles → Molecules</h2>
+          <div class="field"><label>Moles</label><input id="mtm-moles" type="number" step="any" placeholder="e.g. 0.01"></div>
+          <div class="field"><label>Significant figs</label><input id="mtm-sig" type="number" min="1" max="12" value="3"></div>
+          <button class="btn" id="mtm-calc">Calculate</button>
+          <div class="result" id="mtm-result">Result: —</div>
+        </section>
+
+        <section id="molecules-to-moles">
+          <h2>Molecules → Moles</h2>
+          <div class="field"><label>Molecules</label><input id="mtmoles-molecules" type="number" step="any" placeholder="e.g. 6.022e20"></div>
+          <div class="field"><label>Significant figs</label><input id="mtmoles-sig" type="number" min="1" max="12" value="3"></div>
+          <button class="btn" id="mtmoles-calc">Calculate</button>
+          <div class="result" id="mtmoles-result">Result: —</div>
+        </section>
+
+        <section id="molecules-to-grams">
+          <h2>Molecules → Grams</h2>
+          <div class="field"><label>Compound/Element</label><input id="mtg2-formula" type="text" placeholder="e.g. H2O"></div>
+          <div class="field"><label>Molecules</label><input id="mtg2-molecules" type="number" step="any" placeholder="e.g. 1.2044e24"></div>
+          <div class="field"><label>Significant figs</label><input id="mtg2-sig" type="number" min="1" max="12" value="3"></div>
+          <button class="btn" id="mtg2-calc">Calculate</button>
+          <div class="result" id="mtg2-result">Result: —</div>
+        </section>
+
+        <section id="grams-to-molecules">
+          <h2>Grams → Molecules</h2>
+          <div class="field"><label>Compound/Element</label><input id="gtm2-formula" type="text" placeholder="e.g. NaCl"></div>
+          <div class="field"><label>Grams</label><input id="gtm2-grams" type="number" step="any" placeholder="e.g. 58.5"></div>
+          <div class="field"><label>Significant figs</label><input id="gtm2-sig" type="number" min="1" max="12" value="3"></div>
+          <button class="btn" id="gtm2-calc">Calculate</button>
+          <div class="result" id="gtm2-result">Result: —</div>
+        </section>
+
+        <section id="molar-mass">
+          <h2>Molar Mass Calculator</h2>
+          <div class="field"><label>Compound/Element</label><input id="mm-formula" type="text" placeholder="e.g. C6H12O6"></div>
+          <button class="btn" id="mm-calc">Calculate</button>
+          <div class="field"><label>Significant figs</label><input id="mm-sig" type="number" min="1" max="12" value="3"></div>
+          <div class="result" id="mm-result">Molar Mass: —</div>
+          <div class="note">Enter formulas with element symbols and integer counts. Parentheses supported, e.g. Ca(OH)2</div>
+        </section>
+      </div>
+    </div>
+    <footer>Avogadro's number used: 6.022×10^23 • Results formatted to three significant figures</footer>
+  </div>
+
+  <script>
+  // Atomic masses (g/mol) — common elements; extend as needed
+  const ATOMIC_MASSES = {
+    H:1.00794, He:4.002602, Li:6.941, Be:9.012182, B:10.811, C:12.0107, N:14.0067, O:15.9994, F:18.9984032, Ne:20.1797,
+    Na:22.98977, Mg:24.3050, Al:26.98154, Si:28.0855, P:30.97376, S:32.065, Cl:35.453, Ar:39.948, K:39.0983, Ca:40.078,
+    Sc:44.9559, Ti:47.867, V:50.9415, Cr:51.9961, Mn:54.9380, Fe:55.845, Co:58.9332, Ni:58.6934, Cu:63.546, Zn:65.38,
+    Ag:107.8682, Au:196.9665, Pb:207.2, Pt:195.084, I:126.90447
+  };
+
+  const AVOGADRO = 6.022e23;
+
+  // Format number to a given number of significant figures (sig >=1)
+  function toSigFigs(n, sig){
+    sig = Math.max(1, parseInt(sig) || 3);
+    if (!isFinite(n)) return String(n);
+    if (n === 0) return (0).toFixed(Math.max(2, sig-1));
+    const neg = n < 0;
+    let abs = Math.abs(n);
+    const exponent = Math.floor(Math.log10(abs));
+    const factor = Math.pow(10, exponent - sig + 1);
+    const rounded = Math.round(abs / factor) * factor;
+    // Choose exponential for very large or very small numbers
+    if (Math.abs(rounded) >= 10000 || Math.abs(rounded) < 0.001){
+      const s = rounded.toExponential(sig-1);
+      return neg ? '-' + s : s;
+    }
+    // Determine decimals to show
+    const decimals = Math.max(0, sig - exponent - 1);
+    const s = rounded.toFixed(decimals);
+    return neg ? '-' + s : s;
+  }
+
+  // Parse chemical formula into element counts. Supports parentheses and numbers.
+  function parseFormula(formula){
+    if (!formula || typeof formula !== 'string') throw new Error('Invalid formula');
+    // Tokenize: element symbols, numbers, parens
+    const tokens = formula.match(/([A-Z][a-z]?|\(|\)|\d+|\.|·|\[|\])/g);
+    if (!tokens) throw new Error('Invalid formula');
+    const stack = [{}];
+    for (let i=0;i<tokens.length;i++){
+      const t = tokens[i];
+      if (t === '(' || t === '['){ stack.push({}); continue; }
+      if (t === ')' || t === ']'){
+        const group = stack.pop();
+        // look ahead for multiplier
+        let mul = 1;
+        if (i+1 < tokens.length && /^\d+$/.test(tokens[i+1])){ mul = parseInt(tokens[i+1],10); i++; }
+        const top = stack[stack.length-1];
+        for (const el in group) top[el] = (top[el]||0) + group[el]*mul;
+        continue;
+      }
+      if (/^[A-Z][a-z]?$/.test(t)){
+        let el = t;
+        let count = 1;
+        if (i+1 < tokens.length && /^\d+$/.test(tokens[i+1])){ count = parseInt(tokens[i+1],10); i++; }
+        const top = stack[stack.length-1];
+        top[el] = (top[el]||0) + count;
+        continue;
+      }
+      // ignore dots or middot used in hydrates
+      if (t === '.' || t === '·'){
+        // treat hydrate separator by continuing — e.g. CuSO4·5H2O
+        continue;
+      }
+      if (/^\d+$/.test(t)){
+        // stray multiplier (e.g., leading) — multiply whole formula
+        const multiplier = parseInt(t,10);
+        const base = stack.pop();
+        const target = stack[stack.length-1] || {};
+        for (const el in base) target[el] = (target[el]||0) + base[el]*multiplier;
+        stack.push(target);
+        continue;
+      }
+      throw new Error('Invalid token in formula: ' + t);
+    }
+    if (stack.length !== 1) throw new Error('Unmatched parentheses in formula');
+    return stack[0];
+  }
+
+  function atomicMass(formula){
+    // Accept single element or full formula
+    const counts = parseFormula(formula.trim());
+    let mass = 0;
+    for (const el in counts){
+      const m = ATOMIC_MASSES[el];
+      if (m == null) throw new Error('Unknown element: ' + el);
+      mass += m * counts[el];
+    }
+    return mass;
+  }
+
+  // UI helpers
+  function setResult(id, text, isError){
+    const el = document.getElementById(id);
+    el.textContent = 'Result: ' + text;
+    el.style.color = isError ? '#900' : '';
+  }
+
+  // Wire menu
+  document.querySelectorAll('.menu button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const target = btn.dataset.panel;
+      document.querySelectorAll('.panel section').forEach(sec=>sec.classList.remove('active'));
+      document.getElementById(target).classList.add('active');
+    });
+  });
+
+  // Calculations
+  document.getElementById('mtg-calc').addEventListener('click', ()=>{
+    try{
+      const f = document.getElementById('mtg-formula').value || '';
+      const moles = parseFloat(document.getElementById('mtg-moles').value);
+      if (isNaN(moles)) throw new Error('Enter a valid number of moles');
+      const mm = atomicMass(f);
+      const grams = moles * mm;
+      const sig = document.getElementById('mtg-sig').value || 3;
+      setResult('mtg-result', toSigFigs(grams, sig) + ' grams');
+    }catch(e){ setResult('mtg-result', e.message, true); }
+  });
+
+  document.getElementById('gtm-calc').addEventListener('click', ()=>{
+    try{
+      const f = document.getElementById('gtm-formula').value || '';
+      const grams = parseFloat(document.getElementById('gtm-grams').value);
+      if (isNaN(grams)) throw new Error('Enter a valid mass in grams');
+      const mm = atomicMass(f);
+      const moles = grams / mm;
+      const sig = document.getElementById('gtm-sig').value || 3;
+      setResult('gtm-result', toSigFigs(moles, sig) + ' moles');
+    }catch(e){ setResult('gtm-result', e.message, true); }
+  });
+
+  document.getElementById('mtm-calc').addEventListener('click', ()=>{
+    try{
+      const moles = parseFloat(document.getElementById('mtm-moles').value);
+      if (isNaN(moles)) throw new Error('Enter a valid number of moles');
+      const molecules = moles * AVOGADRO;
+      const sig = document.getElementById('mtm-sig').value || 3;
+      setResult('mtm-result', toSigFigs(molecules, sig) + ' molecules');
+    }catch(e){ setResult('mtm-result', e.message, true); }
+  });
+
+  document.getElementById('mtmoles-calc').addEventListener('click', ()=>{
+    try{
+      const molecules = parseFloat(document.getElementById('mtmoles-molecules').value);
+      if (isNaN(molecules)) throw new Error('Enter a valid number of molecules');
+      const moles = molecules / AVOGADRO;
+      const sig = document.getElementById('mtmoles-sig').value || 3;
+      setResult('mtmoles-result', toSigFigs(moles, sig) + ' moles');
+    }catch(e){ setResult('mtmoles-result', e.message, true); }
+  });
+
+  document.getElementById('mtg2-calc').addEventListener('click', ()=>{
+    try{
+      const f = document.getElementById('mtg2-formula').value || '';
+      const molecules = parseFloat(document.getElementById('mtg2-molecules').value);
+      if (isNaN(molecules)) throw new Error('Enter a valid number of molecules');
+      const moles = molecules / AVOGADRO;
+      const mm = atomicMass(f);
+      const grams = moles * mm;
+      const sig = document.getElementById('mtg2-sig').value || 3;
+      setResult('mtg2-result', toSigFigs(grams, sig) + ' grams');
+    }catch(e){ setResult('mtg2-result', e.message, true); }
+  });
+
+  document.getElementById('gtm2-calc').addEventListener('click', ()=>{
+    try{
+      const f = document.getElementById('gtm2-formula').value || '';
+      const grams = parseFloat(document.getElementById('gtm2-grams').value);
+      if (isNaN(grams)) throw new Error('Enter a valid mass in grams');
+      const mm = atomicMass(f);
+      const moles = grams / mm;
+      const molecules = moles * AVOGADRO;
+      const sig = document.getElementById('gtm2-sig').value || 3;
+      setResult('gtm2-result', toSigFigs(molecules, sig) + ' molecules');
+    }catch(e){ setResult('gtm2-result', e.message, true); }
+  });
+
+  document.getElementById('mm-calc').addEventListener('click', ()=>{
+    try{
+      const f = document.getElementById('mm-formula').value || '';
+      const mm = atomicMass(f);
+      const sig = document.getElementById('mm-sig').value || 3;
+      setResult('mm-result', toSigFigs(mm, sig) + ' g/mol');
+    }catch(e){ setResult('mm-result', e.message, true); }
+  });
+  </script>
+</body>
+</html>

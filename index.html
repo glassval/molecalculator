@@ -54,6 +54,7 @@
         <button data-panel="grams-to-molecules">Grams → Molecules</button>
         <button data-panel="molar-mass">Molar Mass</button>
         <button data-panel="molar-mass-gm">Molar Mass (Grams & Molecules)</button>
+        <button data-panel="words-to-molecules">Words to Molecule (Ionics)</button>
       </div>
       <div class="panel">
         <section id="moles-to-grams" class="active">
@@ -125,6 +126,13 @@
           <button class="btn" id="mmgm-calc">Calculate</button>
           <div class="result" id="mmgm-result">Molar Mass: —</div>
         </section>
+
+        <section id="words-to-molecules">
+          <h2>Words to Molecules</h2>
+          <div class="field"><label>Compound/Element</label><input id="wtm-formula" type="text" placeholder="e.g. Iron2 Sulfide"></div>
+          <button class="btn" id="wtm-calc">Find Molecule</button>
+          <div class="result" id="wtm-result">Compound:  —</div>
+        </section>
       </div>
     </div>
     <footer>Avogadro's number used: 6.022×10^23 • Results formatted to three significant figures</footer>
@@ -134,19 +142,119 @@
   // Atomic masses (g/mol) — common elements; extend as needed
   const ATOMIC_MASSES = {
   H: 1.008, He: 4.0026, Li: 6.94, Be: 9.0122, B: 10.81, C: 12.011, N: 14.007, O: 15.999, F: 18.998, Ne: 20.180,
-  Na: 22.990, Mg: 24.305, Al: 26.982, Si: 28.085, P: 30.974, S: 32.06, Cl: 35.45, Ar: 39.95, K: 39.098, Ca: 40.078,
+  Na: 22.990, Mg: 24.305, Al: 26.982, Si: 28.085, P: 30.974, S: 32.06, Cl: 35.45, Ar: 39.948, K: 39.098, Ca: 40.078,
   Sc: 44.956, Ti: 47.867, V: 50.942, Cr: 51.996, Mn: 54.938, Fe: 55.845, Co: 58.933, Ni: 58.693, Cu: 63.546, Zn: 65.38,
-  Ga: 69.723, Ge: 72.630, As: 74.922, Se: 78.971, Br: 79.904, Kr: 83.798, Rb: 85.468, Sr: 87.62, Y: 88.906, Zr: 91.222,
-  Nb: 92.906, Mo: 95.95, Tc: 97, Ru: 101.07, Rh: 102.91, Pd: 106.42, Ag: 107.87, Cd: 112.41, In: 114.82, Sn: 118.71,
+  Ga: 69.723, Ge: 72.63, As: 74.922, Se: 78.971, Br: 79.904, Kr: 83.798, Rb: 85.468, Sr: 87.62, Y: 88.906, Zr: 91.224,
+  Nb: 92.906, Mo: 95.95, Tc: 98, Ru: 101.07, Rh: 102.91, Pd: 106.42, Ag: 107.87, Cd: 112.41, In: 114.82, Sn: 118.71,
   Sb: 121.76, Te: 127.60, I: 126.90, Xe: 131.29, Cs: 132.91, Ba: 137.33, La: 138.91, Ce: 140.12, Pr: 140.91, Nd: 144.24,
   Pm: 145, Sm: 150.36, Eu: 151.96, Gd: 157.25, Tb: 158.93, Dy: 162.50, Ho: 164.93, Er: 167.26, Tm: 168.93, Yb: 173.05,
   Lu: 174.97, Hf: 178.49, Ta: 180.95, W: 183.84, Re: 186.21, Os: 190.23, Ir: 192.22, Pt: 195.08, Au: 196.97, Hg: 200.59,
   Tl: 204.38, Pb: 207.2, Bi: 208.98, Po: 209, At: 210, Rn: 222, Fr: 223, Ra: 226, Ac: 227, Th: 232.04,
   Pa: 231.04, U: 238.03, Np: 237, Pu: 244, Am: 243, Cm: 247, Bk: 247, Cf: 251, Es: 252, Fm: 257,
-  Md: 258, No: 259, Lr: 266, Rf: 267, Db: 268, Sg: 269, Bh: 270, Hs: 269, Mt: 278, Ds: 281,
-  Rg: 282, Cn: 285, Nh: 286, Fl: 289, Mc: 290, Lv: 293, Ts: 294, Og: 294
+  Md: 258, No: 259, Lr: 262, Rf: 267, Db: 270, Sg: 271, Bh: 270, Hs: 277, Mt: 276, Ds: 281,
+  Rg: 280, Cn: 285, Nh: 284, Fl: 289, Mc: 288, Lv: 293, Ts: 294, Og: 294
 };
 
+const nameToCharge = {
+    // --- Group 1: Alkali Metals (+1) ---
+    "hydrogen": 1, "lithium": 1, "sodium": 1, "potassium": 1, "rubidium": 1, "cesium": 1, "francium": 1,
+    
+    // --- Group 2: Alkaline Earth Metals (+2) ---
+    "beryllium": 2, "magnesium": 2, "calcium": 2, "strontium": 2, "barium": 2, "radium": 2,
+
+    // --- Transition Metals (Standard & Variable) ---
+    "scandium": 3, "yttrium": 3, "lutetium": 3, "lawrencium": 3,
+    "titanium3": 3, "titanium4": 4, "zirconium": 4, "hafnium": 4, "rutherfordium": 4,
+    "vanadium2": 2, "vanadium3": 3, "vanadium4": 4, "vanadium5": 5, "niobium": 5, "tantalum": 5, "dubnium": 5,
+    "chromium2": 2, "chromium3": 3, "chromium6": 6, "molybdenum": 6, "tungsten6": 6, "seaborgium": 6,
+    "manganese2": 2, "manganese3": 3, "manganese4": 4, "manganese7": 7, "technetium": 7, "rhenium": 7, "bohrium": 7,
+    "iron2": 2, "iron3": 3, "ruthenium": 3, "osmium": 4, "hassium": 8,
+    "cobalt2": 2, "cobalt3": 3, "rhodium": 3, "iridium": 4, "meitnerium": 9,
+    "nickel2": 2, "nickel3": 3, "palladium2": 2, "palladium4": 4, "platinum2": 2, "platinum4": 4, "darmstadtium": 0,
+    "copper1": 1, "copper2": 2, "silver": 1, "gold1": 1, "gold3": 3, "roentgenium": 0,
+    "zinc": 2, "cadmium": 2, "mercury1": 1, "mercury2": 2, "copernicium": 2,
+
+    // --- Post-Transition Metals & Metalloids ---
+    "aluminum": 3, "gallium": 3, "indium": 3, "thallium1": 1, "thallium3": 3, "nihonium": 1,
+    "germanium": 4, "tin2": 2, "tin4": 4, "lead2": 2, "lead4": 4, "flerovium": 2,
+    "bismuth3": 3, "bismuth5": 5, "polonium": 2, "moscovium": 1, "livermorium": 2,
+
+    // --- Lanthanides & Actinides ---
+    "lanthanum": 3, "cerium3": 3, "cerium4": 4, "praseodymium": 3, "neodymium": 3, "promethium": 3, 
+    "samarium": 3, "europium3": 3, "europium2": 2, "gadolinium": 3, "terbium": 3, "dysprosium": 3, 
+    "holmium": 3, "erbium": 3, "thulium": 3, "ytterbium": 3, "actinium": 3, "thorium": 4, 
+    "protactinium": 5, "uranium3": 3, "uranium4": 4, "uranium6": 6, "neptunium5": 5, "plutonium4": 4, 
+    "americium3": 3, "curium": 3, "berkelium": 3, "californium": 3, "einsteinium": 3, "fermium": 3, 
+    "mendelevium": 3, "nobelium": 2, "aluminium": 3,
+
+    // --- Monatomic Anions (-ides) ---
+    "hydride": -1, "boride": -3, "carbide": -4, "silicide": -4, "nitride": -3, "phosphide": -3, 
+    "arsenide": -3, "antimonide": -3, "oxide": -2, "sulfide": -2, "selenide": -2, "telluride": -2, 
+    "fluoride": -1, "chloride": -1, "bromide": -1, "iodide": -1, "astatide": -1, "tennesside": -1,
+
+    // --- Polyatomic Ions (from your list) ---
+    "nitrite": -1, "nitrate": -1, "acetate": -1, "hydroxide": -1, "cyanide": -1,
+    "permanganate": -1, "hypochlorite": -1, "chlorite": -1, "chlorate": -1, "perchlorate": -1,
+    "iodate": -1, "sulfite": -2, "sulfate": -2, "hydrogensulfate": -1, "bisulfate": -1,
+    "carbonate": -2, "hydrogencarbonate": -1, "bicarbonate": -1, "dichromate": -2, "chromate": -2,
+    "peroxide": -2, "oxalate": -2, "phosphite": -3, "phosphate": -3, "hydrogenphosphite": -2,
+    "hydrogenphosphate": -2, "dihydrogenphosphite": -1, "dihydrogenphosphate": -1,
+    "ammonium": 1, // Added from the partially visible top-left of your image
+
+    // --- Noble Gases ---
+    "helium": 0, "neon": 0, "argon": 0, "krypton": 0, "xenon": 0, "radon": 0, "oganesson": 0
+};
+const nameToSymbol = {
+    // --- Group 1: Alkali Metals ---
+    "hydrogen": "H", "lithium": "Li", "sodium": "Na", "potassium": "K", "rubidium": "Rb", "cesium": "Cs", "francium": "Fr",
+    
+    // --- Group 2: Alkaline Earth Metals ---
+    "beryllium": "Be", "magnesium": "Mg", "calcium": "Ca", "strontium": "Sr", "barium": "Ba", "radium": "Ra",
+
+    // --- Transition Metals ---
+    "scandium": "Sc", "yttrium": "Y", "lutetium": "Lu", "lawrencium": "Lr",
+    "titanium": "Ti", "titanium3": "Ti", "titanium4": "Ti", "zirconium": "Zr", "hafnium": "Hf", "rutherfordium": "Rf",
+    "vanadium": "V", "vanadium2": "V", "vanadium3": "V", "vanadium4": "V", "vanadium5": "V", "niobium": "Nb", "tantalum": "Ta", "dubnium": "Db",
+    "chromium": "Cr", "chromium2": "Cr", "chromium3": "Cr", "chromium6": "Cr", "molybdenum": "Mo", "tungsten": "W", "tungsten6": "W", "seaborgium": "Sg",
+    "manganese": "Mn", "manganese2": "Mn", "manganese3": "Mn", "manganese4": "Mn", "manganese7": "Mn", "technetium": "Tc", "rhenium": "Re", "bohrium": "Bh",
+    "iron": "Fe", "iron2": "Fe", "iron3": "Fe", "ruthenium": "Ru", "osmium": "Os", "hassium": "Hs",
+    "cobalt": "Co", "cobalt2": "Co", "cobalt3": "Co", "rhodium": "Rh", "iridium": "Ir", "meitnerium": "Mt",
+    "nickel": "Ni", "nickel2": "Ni", "nickel3": "Ni", "palladium": "Pd", "palladium2": "Pd", "palladium4": "Pd", "platinum": "Pt", "platinum2": "Pt", "platinum4": "Pt", "darmstadtium": "Ds",
+    "copper": "Cu", "copper1": "Cu", "copper2": "Cu", "silver": "Ag", "gold": "Au", "gold1": "Au", "gold3": "Au", "roentgenium": "Rg",
+    "zinc": "Zn", "cadmium": "Cd", "mercury": "Hg", "mercury1": "Hg", "mercury2": "Hg", "copernicium": "Cn",
+
+    // --- Post-Transition Metals & Metalloids ---
+    "boron": "B", "aluminum": "Al", "gallium": "Ga", "indium": "In", "thallium": "Tl", "thallium1": "Tl", "thallium3": "Tl", "nihonium": "Nh",
+    "carbon": "C", "silicon": "Si", "germanium": "Ge", "tin": "Sn", "tin2": "Sn", "tin4": "Sn", "lead": "Pb", "lead2": "Pb", "lead4": "Pb", "flerovium": "Fl",
+    "nitrogen": "N", "phosphorus": "P", "arsenic": "As", "antimony": "Sb", "bismuth": "Bi", "bismuth3": "Bi", "bismuth5": "Bi", "moscovium": "Mc",
+    "oxygen": "O", "sulfur": "S", "selenium": "Se", "tellurium": "Te", "polonium": "Po", "livermorium": "Lv",
+    "fluorine": "F", "chlorine": "Cl", "bromine": "Br", "iodine": "I", "astatine": "At", "tennessine": "Ts",
+
+    // --- Lanthanides & Actinides ---
+    "lanthanum": "La", "cerium": "Ce", "cerium3": "Ce", "cerium4": "Ce", "praseodymium": "Pr", "neodymium": "Nd", "promethium": "Pm", 
+    "samarium": "Sm", "europium": "Eu", "europium3": "Eu", "europium2": "Eu", "gadolinium": "Gd", "terbium": "Tb", "dysprosium": "Dy", 
+    "holmium": "Ho", "erbium": "Er", "thulium": "Tm", "ytterbium": "Yb", "actinium": "Ac", "thorium": "Th", 
+    "protactinium": "Pa", "uranium": "U", "uranium3": "U", "uranium4": "U", "uranium6": "U", "neptunium": "Np", "neptunium5": "Np", "plutonium": "Pu", "plutonium4": "Pu", 
+    "americium": "Am", "americium3": "Am", "curium": "Cm", "berkelium": "Bk", "californium": "Cf", "einsteinium": "Es", "fermium": "Fm", 
+    "mendelevium": "Md", "nobelium": "No",
+
+    // --- Anions (-ides) ---
+    "hydride": "H", "boride": "B", "carbide": "C", "silicide": "Si", "nitride": "N", "phosphide": "P", 
+    "arsenide": "As", "antimonide": "Sb", "oxide": "O", "sulfide": "S", "selenide": "Se", "telluride": "Te", 
+    "fluoride": "F", "chloride": "Cl", "bromide": "Br", "iodide": "I", "astatide": "At", "tennesside": "Ts",
+
+    // --- Polyatomic Ions (from your list) ---
+    "nitrite": "NO2", "nitrate": "NO3", "acetate": "C2H3O2", "hydroxide": "OH", "cyanide": "CN",
+    "permanganate": "MnO4", "hypochlorite": "ClO", "chlorite": "ClO2", "chlorate": "ClO3", "perchlorate": "ClO4",
+    "iodate": "IO3", "sulfite": "SO3", "sulfate": "SO4", "hydrogensulfate": "HSO4", "bisulfate": "HSO4",
+    "carbonate": "CO3", "hydrogencarbonate": "HCO3", "bicarbonate": "HCO3", "dichromate": "Cr2O7", "chromate": "CrO4",
+    "peroxide": "O2", "oxalate": "C2O4", "phosphite": "PO3", "phosphate": "PO4", "hydrogenphosphite": "HPO3",
+    "hydrogenphosphate": "HPO4", "dihydrogenphosphite": "H2PO3", "dihydrogenphosphate": "H2PO4",
+    "ammonium": "NH4",
+
+    // --- Noble Gases ---
+    "helium": "He", "neon": "Ne", "argon": "Ar", "krypton": "Kr", "xenon": "Xe", "radon": "Rn", "oganesson": "Og"
+};
   const AVOGADRO = 6.022e23;
 
   // Format number to a given number of significant figures (sig >=1)
@@ -227,6 +335,41 @@
       mass += m * counts[el];
     }
     return mass;
+  }
+  function romanNumeralsToInt(roman) {
+    const romanNumerals = {
+      'I': 1,
+      'V': 5,
+      'X': 10,
+      'L': 50,
+      'C': 100,
+      'D': 500,
+      'M': 1000
+    };
+    let total = 0;
+    let prevValue = 0;
+
+    for (let i = roman.length - 1; i >= 0; i--) {
+      const currentValue = romanNumerals[roman[i]];
+      if (currentValue < prevValue) {
+        total -= currentValue;
+      } else {
+        total += currentValue;
+      }
+      prevValue = currentValue;
+    }
+    return total;
+  }
+  function getGCF(a, b) {
+  if (b === 0) {
+    return Math.abs(a); // Return absolute value of a if b is 0
+  } else {
+    return getGCF(b, a % b); // Recursively call the function with b and the remainder
+  }
+}
+
+  function isRoman(s) {
+    return /^[IVXLCDM]+$/i.test(s);
   }
 
   // UI helpers
@@ -339,12 +482,58 @@
     }catch(e){ setResult('mmgm-result', e.message, true); }
   });
 
+document.getElementById('wtm-calc').addEventListener('click', () => {
+  try {
+    const input = document.getElementById('wtm-formula').value.trim().toLowerCase();
+    // Remove parentheses and split by space
+    let parts = input.replace(/\(|\)/g, "").split(/\s+/).filter(p => p); // filter empty
+    
+    // Process Roman Numerals: combine with previous if roman
+    let processedParts = [];
+    for (let i = 0; i < parts.length; i++) {
+      if (i < parts.length - 1 && isRoman(parts[i+1])) {
+        processedParts.push(parts[i] + romanNumeralsToInt(parts[i+1]));
+        i++; // skip next
+      } else {
+        processedParts.push(parts[i]);
+      }
+    }
+    if (processedParts.length !== 2) throw new Error('Enter exactly two parts: cation and anion');
+    
+    // Get charges
+    let charge_pos = nameToCharge[processedParts[0]];
+    let charge_neg = nameToCharge[processedParts[1]];
+    if (!charge_pos || charge_pos <= 0) throw new Error('Invalid cation: ' + processedParts[0]);
+    if (!charge_neg || charge_neg >= 0) throw new Error('Invalid anion: ' + processedParts[1]);
+    
+    // Criss-Cross Method
+    const common = getGCF(Math.abs(charge_pos), Math.abs(charge_neg));
+    const sub_pos = Math.abs(charge_neg) / common;
+    const sub_neg = Math.abs(charge_pos) / common;
+    
+    // Build Formula
+    const sym_pos = nameToSymbol[processedParts[0]];
+    const sym_neg = nameToSymbol[processedParts[1]];
+    if (!sym_pos || !sym_neg) throw new Error('Unknown element symbols');
+    
+    const formatPoly = (sym, sub) => {
+        const isPoly = sym.length > 2 || /[0-9]/.test(sym);
+        return (isPoly && sub > 1) ? `(${sym})${sub}` : `${sym}${sub > 1 ? sub : ""}`;
+    };
+    let result = formatPoly(sym_pos, sub_pos) + formatPoly(sym_neg, sub_neg);
+    setResult('wtm-result', 'Compound: ' + result);
+  } catch (e) { 
+    setResult('wtm-result', e.message, true); 
+  }
+});
+
   // Enter key support for all inputs
   const inputToCalc = {
     'mtg-formula': 'mtg-calc', 'mtg-moles': 'mtg-calc', 'mtg-sig': 'mtg-calc',
     'gtm-formula': 'gtm-calc', 'gtm-grams': 'gtm-calc', 'gtm-sig': 'gtm-calc',
     'mtm-moles': 'mtm-calc', 'mtm-sig': 'mtm-calc',
     'mtmoles-molecules': 'mtmoles-calc', 'mtmoles-sig': 'mtmoles-calc',
+    'wtm-formula': 'wtm-calc', 'wtm-sig': 'wtm-calc',
     'mtg2-formula': 'mtg2-calc', 'mtg2-molecules': 'mtg2-calc', 'mtg2-sig': 'mtg2-calc',
     'gtm2-formula': 'gtm2-calc', 'gtm2-grams': 'gtm2-calc', 'gtm2-sig': 'gtm2-calc',
     'mm-formula': 'mm-calc', 'mm-sig': 'mm-calc',
